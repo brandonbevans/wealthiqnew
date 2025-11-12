@@ -29,7 +29,8 @@ struct OnboardingView: View {
         if viewModel.currentStep != .gender {
           ContinueButtonView(
             title: "Continue",
-            isEnabled: viewModel.canContinue && !hasTriggeredPaywall
+            isEnabled: viewModel.canContinue
+              && (viewModel.currentStep != .processDifficulty || !hasTriggeredPaywall)
           ) {
             handleContinue()
           }
@@ -44,6 +45,11 @@ struct OnboardingView: View {
     }
     .animation(.spring(response: 0.45, dampingFraction: 0.85), value: viewModel.currentStep)
     .animation(.easeInOut(duration: 0.2), value: viewModel.canContinue)
+    .onChange(of: viewModel.currentStep) { newStep in
+      if newStep != .processDifficulty {
+        hasTriggeredPaywall = false
+      }
+    }
   }
 
   @ViewBuilder

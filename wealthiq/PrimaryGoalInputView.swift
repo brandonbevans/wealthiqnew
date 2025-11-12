@@ -27,8 +27,8 @@ struct PrimaryGoalInputView: View {
             Text(placeholderText)
               .font(.outfit(14))
               .foregroundColor(Color(red: 0.67, green: 0.62, blue: 0.72))
-              .padding(.horizontal, 16)
-              .padding(.vertical, 18)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 12)
           }
 
           TextEditor(text: $viewModel.primaryGoal)

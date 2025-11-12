@@ -11,8 +11,6 @@ import Foundation
 enum Gender: String, CaseIterable {
   case female = "Female"
   case male = "Male"
-  case nonBinary = "Non-Binary"
-  case others = "Others"
 }
 
 enum Mood: String, CaseIterable {

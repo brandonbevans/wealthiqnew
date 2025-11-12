@@ -53,8 +53,8 @@ struct HabitReplacementInputView: View {
     Text(placeholder)
       .font(.outfit(14))
       .foregroundColor(Color(red: 0.67, green: 0.62, blue: 0.72))
-      .padding(.horizontal, 16)
-      .padding(.vertical, 18)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 12)
   }
 
   private func editor(text: Binding<String>) -> some View {
@@ -117,8 +117,8 @@ struct DeferredActionInputView: View {
     Text(placeholder)
       .font(.outfit(14))
       .foregroundColor(Color(red: 0.67, green: 0.62, blue: 0.72))
-      .padding(.horizontal, 16)
-      .padding(.vertical, 18)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 12)
   }
 
   private func editor(text: Binding<String>) -> some View {
@@ -188,8 +188,8 @@ struct CommitmentInputView: View {
     Text(placeholder)
       .font(.outfit(14))
       .foregroundColor(Color(red: 0.67, green: 0.62, blue: 0.72))
-      .padding(.horizontal, 16)
-      .padding(.vertical, 18)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 12)
   }
 
   private func editor(text: Binding<String>) -> some View {
@@ -223,5 +223,3 @@ private struct ReflectionEditorContainer<Content: View>: View {
       )
   }
 }
-
-
