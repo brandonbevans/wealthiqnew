@@ -17,7 +17,7 @@ struct HabitReplacementInputView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("What’s one habit you need to quit or replace?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
@@ -62,7 +62,7 @@ struct DeferredActionInputView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("What is one thing you know you should be doing—but haven’t been?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 

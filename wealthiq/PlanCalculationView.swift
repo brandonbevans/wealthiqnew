@@ -11,42 +11,62 @@ struct PlanCalculationView: View {
   @ObservedObject var viewModel: OnboardingViewModel
   var onComplete: () -> Void
 
+  private let animationDuration: TimeInterval = 10
+
   @State private var hasScheduledAdvance = false
+  @State private var animationProgress: Double = 0
+  @State private var isComplete = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 28) {
-      HourglassIllustration()
+      HourglassIllustration(progress: animationProgress)
         .frame(width: 88, height: 88)
         .padding(.top, 4)
 
       VStack(alignment: .leading, spacing: 14) {
-        Text("Calculating Your Plan…")
-          .font(.outfit(24, weight: .semiBold))
+        Text(isComplete ? "Your Personal Plan Is Ready!" : "Calculating Your Plan…")
+          .font(.lora(24, weight: .semiBold))
           .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
 
-        Text("Look how even this onboarding has you feeling more ready to tackle your goals")
-          .font(.outfit(16))
-          .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
-          .lineSpacing(4)
+        Text(
+          isComplete
+            ? "Your personal plan is ready. It's time to invest in yourself. In this app we'll raise your self-esteem, teach you how to tap into the superconscious, and turn your brain into a goal-achieving machine."
+            : "Take a moment to reflect on how you're feeling in this very moment compared to when you started.\nDo you see how this process has lifted your spirits even just a little bit?\nThis is the power of visualization and goal setting at work.\nIt is a skill in of itself, and that was is what we'll continue to develop in the coming weeks."
+        )
+        .font(.outfit(16))
+        .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
+        .lineSpacing(6)
+        .multilineTextAlignment(.leading)
+
+        Text("\(Int(animationProgress * 100))% complete")
+          .font(.outfit(14, weight: .medium))
+          .foregroundColor(Color(red: 0.36, green: 0.33, blue: 0.46))
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .onAppear {
-      scheduleAdvance()
+      startAnimationAndAdvance()
     }
     .onChange(of: viewModel.currentStep) { _ in
       if viewModel.currentStep == .planCalculation {
-        scheduleAdvance()
+        startAnimationAndAdvance()
       }
     }
   }
 
-  private func scheduleAdvance() {
+  private func startAnimationAndAdvance() {
     guard !hasScheduledAdvance else { return }
     hasScheduledAdvance = true
+    animationProgress = 0
+    isComplete = false
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+    withAnimation(.linear(duration: animationDuration)) {
+      animationProgress = 1
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
       guard viewModel.currentStep == .planCalculation else { return }
+      isComplete = true
       onComplete()
       hasScheduledAdvance = false
     }
@@ -54,6 +74,28 @@ struct PlanCalculationView: View {
 }
 
 private struct HourglassIllustration: View {
+  let progress: Double
+
+  private var rotationAngle: Angle {
+    let phase = progress * .pi * 2
+    let bounce = sin(phase)
+
+    // Base: 2 full rotations over the animation (twice as fast as before)
+    let baseRotations = 2.0
+
+    // Speed up rotation as we approach the apex of the bounce (|bounce| -> 1)
+    let speedFactor = 1.0 + 1.5 * abs(bounce)  // 1x to 2.5x
+
+    let degrees = progress * baseRotations * 360 * speedFactor
+    return .degrees(degrees)
+  }
+
+  private var bounceOffset: CGFloat {
+    // Gentle bounce up and down over time
+    let phase = progress * .pi * 2
+    return -10 * CGFloat(sin(phase))
+  }
+
   var body: some View {
     ZStack {
       RoundedRectangle(cornerRadius: 28)
@@ -61,7 +103,7 @@ private struct HourglassIllustration: View {
           LinearGradient(
             colors: [
               Color(red: 0.93, green: 0.89, blue: 1.0),
-              Color(red: 0.83, green: 0.94, blue: 1.0)
+              Color(red: 0.83, green: 0.94, blue: 1.0),
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -88,14 +130,14 @@ private struct HourglassIllustration: View {
           .frame(width: 42, height: 6)
       }
     }
+    .rotationEffect(rotationAngle)
+    .offset(y: bounceOffset)
   }
 }
 
 private struct HourglassShape: Shape {
   func path(in rect: CGRect) -> Path {
     var path = Path()
-    let topWidth = rect.width
-    let bottomWidth = rect.width
     let neckWidth = rect.width * 0.3
     let midY = rect.midY
 
@@ -125,8 +167,7 @@ private struct HourglassFill: Shape {
 }
 
 #Preview {
-  PlanCalculationView(viewModel: OnboardingViewModel())
+  PlanCalculationView(viewModel: OnboardingViewModel(), onComplete: {})
     .padding(20)
     .background(Color.white)
 }
-

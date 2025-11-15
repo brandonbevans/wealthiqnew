@@ -18,10 +18,10 @@ struct GoalVisualizationInputView: View {
     VStack(alignment: .leading, spacing: 24) {
       VStack(alignment: .leading, spacing: 10) {
         Text("Stop and imagine what it would feel like to accomplish this goal.")
-          .font(.outfit(24, weight: .semiBold))
+          .font(.lora(24, weight: .semiBold))
           .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         Text("What would be different?")
-          .font(.outfit(24, weight: .semiBold))
+          .font(.lora(24, weight: .semiBold))
           .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
       }
       .multilineTextAlignment(.leading)

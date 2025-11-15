@@ -13,7 +13,7 @@ struct MotivationShiftSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("How do you feel now?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
@@ -44,7 +44,7 @@ struct PostSessionMoodSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("How do you feel now?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
@@ -70,7 +70,7 @@ struct ProcessDifficultySelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("How difficult was this process for you?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 

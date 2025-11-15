@@ -15,7 +15,7 @@ struct HabitLawInfoView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Breaking Habits with\nthe Law of Substitution")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 

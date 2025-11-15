@@ -30,7 +30,7 @@ struct AgeInputView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("What is your age?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 

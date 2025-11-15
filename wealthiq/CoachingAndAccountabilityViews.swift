@@ -13,7 +13,7 @@ struct CoachingStyleSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("What kind of coaching do you respond to best?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
@@ -52,7 +52,7 @@ struct AccountabilityPreferenceSelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("How do you want accountability to feel?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 

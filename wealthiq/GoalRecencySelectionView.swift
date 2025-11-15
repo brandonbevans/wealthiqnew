@@ -14,7 +14,7 @@ struct GoalRecencySelectionView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("When was the last time you\nwrote down your goals?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
@@ -44,7 +44,7 @@ private struct GoalRecencyChip: View {
     LinearGradient(
       colors: [
         Color(red: 0.87, green: 0.79, blue: 1.0),
-        Color(red: 0.78, green: 0.69, blue: 0.99)
+        Color(red: 0.78, green: 0.69, blue: 0.99),
       ],
       startPoint: .topLeading,
       endPoint: .bottomTrailing
@@ -60,7 +60,9 @@ private struct GoalRecencyChip: View {
         .padding(.vertical, 18)
         .background(
           RoundedRectangle(cornerRadius: 80)
-            .fill(isSelected ? AnyShapeStyle(selectedGradient) : AnyShapeStyle(Color.white.opacity(0.97)))
+            .fill(
+              isSelected
+                ? AnyShapeStyle(selectedGradient) : AnyShapeStyle(Color.white.opacity(0.97)))
         )
         .overlay(
           RoundedRectangle(cornerRadius: 80)
@@ -87,5 +89,3 @@ private struct GoalRecencyChip: View {
     .padding(20)
     .background(Color.white)
 }
-
-

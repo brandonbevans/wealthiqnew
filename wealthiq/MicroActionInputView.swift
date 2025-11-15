@@ -17,7 +17,7 @@ struct MicroActionInputView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
       Text("If you made just 1% progress this week, what would that look like?")
-        .font(.outfit(24, weight: .semiBold))
+        .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
 
