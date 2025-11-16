@@ -68,6 +68,8 @@ struct OnboardingView: View {
       }
     case .age:
       AgeInputView(viewModel: viewModel)
+    case .welcomeIntro:
+      WelcomeIntroView(viewModel: viewModel)
     case .mood:
       MoodSelectionView(viewModel: viewModel)
     case .goalRecency:
@@ -90,28 +92,10 @@ struct OnboardingView: View {
       MicroActionInputView(viewModel: viewModel) {
         handleContinue()
       }
-    case .trajectoryFeeling:
-      TrajectoryFeelingSelectionView(viewModel: viewModel)
-    case .obstacles:
-      ObstacleSelectionView(viewModel: viewModel)
-    case .habitReplacement:
-      HabitReplacementInputView(viewModel: viewModel) {
-        handleContinue()
-      }
-    case .deferredAction:
-      DeferredActionInputView(viewModel: viewModel) {
-        handleContinue()
-      }
-    case .habitLawInfo:
-      HabitLawInfoView()
     case .coachingStyle:
       CoachingStyleSelectionView(viewModel: viewModel)
     case .accountability:
       AccountabilityPreferenceSelectionView(viewModel: viewModel)
-    case .motivationShift:
-      MotivationShiftSelectionView(viewModel: viewModel)
-    case .postSessionMood:
-      PostSessionMoodSelectionView(viewModel: viewModel)
     case .processDifficulty:
       ProcessDifficultySelectionView(viewModel: viewModel)
     case .planCalculation:
@@ -137,6 +121,10 @@ struct OnboardingView: View {
       withAnimation {
         viewModel.nextStep()
       }
+    case .welcomeIntro:
+      withAnimation {
+        viewModel.nextStep()
+      }
     case .mood:
       withAnimation {
         viewModel.nextStep()
@@ -165,39 +153,11 @@ struct OnboardingView: View {
       withAnimation {
         viewModel.nextStep()
       }
-    case .trajectoryFeeling:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .obstacles:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .habitReplacement:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .deferredAction:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .habitLawInfo:
-      withAnimation {
-        viewModel.nextStep()
-      }
     case .coachingStyle:
       withAnimation {
         viewModel.nextStep()
       }
     case .accountability:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .motivationShift:
-      withAnimation {
-        viewModel.nextStep()
-      }
-    case .postSessionMood:
       withAnimation {
         viewModel.nextStep()
       }

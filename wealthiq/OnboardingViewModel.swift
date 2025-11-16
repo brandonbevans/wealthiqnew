@@ -100,24 +100,18 @@ enum OnboardingStep: Int, CaseIterable {
   case gender = 0
   case name = 1
   case age = 2
-  case mood = 3
-  case goalRecency = 4
-  case goalWritingInfo = 5
-  case primaryGoal = 6
-  case goalVisualization = 7
-  case visualizationInfo = 8
-  case microAction = 9
-  case trajectoryFeeling = 10
-  case obstacles = 11
-  case habitReplacement = 12
-  case deferredAction = 13
-  case habitLawInfo = 14
-  case coachingStyle = 15
-  case accountability = 16
-  case motivationShift = 17
-  case postSessionMood = 18
-  case processDifficulty = 19
-  case planCalculation = 20
+  case welcomeIntro = 3
+  case mood = 4
+  case goalRecency = 5
+  case goalWritingInfo = 6
+  case primaryGoal = 7
+  case goalVisualization = 8
+  case visualizationInfo = 9
+  case microAction = 10
+  case coachingStyle = 11
+  case accountability = 12
+  case processDifficulty = 13
+  case planCalculation = 14
 
   var totalSteps: Int {
     OnboardingStep.allCases.count
@@ -134,14 +128,8 @@ class OnboardingViewModel: ObservableObject {
   @Published var primaryGoal: String = ""
   @Published var goalVisualization: String = ""
   @Published var microAction: String = ""
-  @Published var selectedTrajectoryFeelings: Set<TrajectoryFeeling> = []
-  @Published var selectedObstacles: Set<Obstacle> = []
-  @Published var habitToReplace: String = ""
-  @Published var deferredAction: String = ""
   @Published var selectedCoachingStyle: CoachingStyle?
   @Published var accountabilityPreferences: Set<AccountabilityPreference> = []
-  @Published var motivationShift: MotivationShift?
-  @Published var postSessionMoods: Set<Mood> = []
   @Published var processDifficulty: ProcessDifficulty?
 
   var progress: Double {
@@ -156,6 +144,8 @@ class OnboardingViewModel: ObservableObject {
       return !firstName.trimmingCharacters(in: .whitespaces).isEmpty
     case .age:
       return isValidAge
+    case .welcomeIntro:
+      return true
     case .mood:
       return !selectedMoods.isEmpty
     case .goalRecency:
@@ -170,24 +160,10 @@ class OnboardingViewModel: ObservableObject {
       return true
     case .microAction:
       return !microAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    case .trajectoryFeeling:
-      return !selectedTrajectoryFeelings.isEmpty
-    case .obstacles:
-      return !selectedObstacles.isEmpty
-    case .habitReplacement:
-      return !habitToReplace.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    case .deferredAction:
-      return !deferredAction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    case .habitLawInfo:
-      return true
     case .coachingStyle:
       return selectedCoachingStyle != nil
     case .accountability:
       return !accountabilityPreferences.isEmpty
-    case .motivationShift:
-      return motivationShift != nil
-    case .postSessionMood:
-      return !postSessionMoods.isEmpty
     case .processDifficulty:
       return processDifficulty != nil
     case .planCalculation:
@@ -234,14 +210,6 @@ class OnboardingViewModel: ObservableObject {
     GoalRecency.allCases
   }
 
-  var trajectoryOptions: [TrajectoryFeeling] {
-    TrajectoryFeeling.allCases
-  }
-
-  var obstacleOptions: [Obstacle] {
-    Obstacle.allCases
-  }
-
   var coachingStyleOptions: [CoachingStyle] {
     CoachingStyle.allCases
   }
@@ -250,28 +218,8 @@ class OnboardingViewModel: ObservableObject {
     AccountabilityPreference.allCases
   }
 
-  var motivationShiftOptions: [MotivationShift] {
-    MotivationShift.allCases
-  }
-
   var difficultyOptions: [ProcessDifficulty] {
     ProcessDifficulty.allCases
-  }
-
-  func toggleTrajectoryFeeling(_ feeling: TrajectoryFeeling) {
-    if selectedTrajectoryFeelings.contains(feeling) {
-      selectedTrajectoryFeelings.remove(feeling)
-    } else {
-      selectedTrajectoryFeelings.insert(feeling)
-    }
-  }
-
-  func toggleObstacle(_ obstacle: Obstacle) {
-    if selectedObstacles.contains(obstacle) {
-      selectedObstacles.remove(obstacle)
-    } else {
-      selectedObstacles.insert(obstacle)
-    }
   }
 
   func selectCoachingStyle(_ style: CoachingStyle) {
@@ -283,18 +231,6 @@ class OnboardingViewModel: ObservableObject {
       accountabilityPreferences.remove(preference)
     } else {
       accountabilityPreferences.insert(preference)
-    }
-  }
-
-  func selectMotivationShift(_ shift: MotivationShift) {
-    motivationShift = shift
-  }
-
-  func togglePostSessionMood(_ mood: Mood) {
-    if postSessionMoods.contains(mood) {
-      postSessionMoods.remove(mood)
-    } else {
-      postSessionMoods.insert(mood)
     }
   }
 

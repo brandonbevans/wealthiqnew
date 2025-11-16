@@ -20,15 +20,18 @@ struct GoalWritingInfoView: View {
         .multilineTextAlignment(.leading)
 
       VStack(alignment: .leading, spacing: 14) {
-        Text("""
-Less than 3% of people ever commit their goals to paper, and that tiny minority tends to achieve far more than everyone else.
-""")
-        Text("""
-Putting a goal in writing transforms a vague wish into a clear target and signals to your brain that this outcome truly matters.
-""")
-        Text("""
-It engages your mind’s built-in goal-seeking mechanism, intensifying your focus and motivation. In fact, simply writing down what you want makes you significantly more likely to achieve it.
-""")
+        Text(
+          """
+          Less than 3% of people ever commit their goals to paper. Would you be surprised to hear that that tiny minority significantly outperforms the other 97%?
+          """)
+        Text(
+          """
+          Putting a goal in writing transforms a vague wish into a clear target and signals to your brain that this outcome truly matters.
+          """)
+        Text(
+          """
+          It engages your mind’s built-in goal-seeking mechanism, intensifying your focus and motivation. In fact, simply writing down what you want makes you significantly more likely to achieve it.
+          """)
       }
       .font(.outfit(14))
       .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
@@ -46,7 +49,7 @@ private struct GoalWritingIllustrationView: View {
           LinearGradient(
             colors: [
               Color(red: 0.9, green: 0.86, blue: 1.0),
-              Color(red: 0.82, green: 0.92, blue: 1.0)
+              Color(red: 0.82, green: 0.92, blue: 1.0),
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -80,5 +83,3 @@ private struct GoalWritingIllustrationView: View {
     .padding(20)
     .background(Color.white)
 }
-
-

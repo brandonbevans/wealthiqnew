@@ -16,10 +16,18 @@ struct PrimaryGoalInputView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 24) {
-      Text("What is the most important goal\nfor you to achieve right now?")
+      Text("What is your #1 goal in life right now?")
         .font(.lora(24, weight: .semiBold))
         .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
         .multilineTextAlignment(.leading)
+
+      Text(
+        "If you don't know immediately, that's okay. Take 2 minutes to think about it, and write down what you come up with."
+      )
+      .font(.outfit(14))
+      .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.32))
+      .multilineTextAlignment(.leading)
+      .lineSpacing(6)
 
       GoalEditorContainer {
         OnboardingTextArea(
@@ -74,5 +82,3 @@ private struct GoalEditorContainer<Content: View>: View {
     .padding(20)
     .background(Color.white)
 }
-
-
