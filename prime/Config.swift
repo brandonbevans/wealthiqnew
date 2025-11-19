@@ -31,18 +31,12 @@ struct Config {
   /// Loaded from Info.plist SUPABASE_URL key
   /// Same as NEXT_PUBLIC_SUPABASE_URL in frontend/.env.local
   static var supabaseURL: String {
-    print("🔍 [Config] Loading SUPABASE_URL from Info.plist...")
     let rawValue = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL")
-    print("🔍 [Config] Raw value type: \(type(of: rawValue))")
-    print("🔍 [Config] Raw value: \(String(describing: rawValue))")
     
     guard let url = rawValue as? String else {
-      print("❌ [Config] SUPABASE_URL not found or invalid in Info.plist")
-      print("❌ [Config] Available Info.plist keys: \(Bundle.main.infoDictionary?.keys.joined(separator: ", ") ?? "none")")
       fatalError("SUPABASE_URL not found in Info.plist. Please add your Supabase project URL.")
     }
     
-    print("✅ [Config] SUPABASE_URL loaded: \(url)")
     return url
   }
 
@@ -50,18 +44,12 @@ struct Config {
   /// Loaded from Info.plist SUPABASE_ANON_KEY key
   /// Same as NEXT_PUBLIC_SUPABASE_ANON_KEY in frontend/.env.local
   static var supabaseAnonKey: String {
-    print("🔍 [Config] Loading SUPABASE_ANON_KEY from Info.plist...")
     let rawValue = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY")
-    print("🔍 [Config] Raw value type: \(type(of: rawValue))")
-    print("🔍 [Config] Raw value: \(String(describing: rawValue))")
     
     guard let key = rawValue as? String else {
-      print("❌ [Config] SUPABASE_ANON_KEY not found or invalid in Info.plist")
       fatalError("SUPABASE_ANON_KEY not found in Info.plist. Please add your Supabase anon key.")
     }
     
-    let maskedKey = key.count > 10 ? "\(key.prefix(10))...\(key.suffix(10))" : "***"
-    print("✅ [Config] SUPABASE_ANON_KEY loaded: \(maskedKey)")
     return key
   }
   
@@ -85,25 +73,16 @@ struct Config {
 
   /// Validate that the configuration has been set
   static var isConfigured: Bool {
-    print("🔍 [Config] Checking if configuration is valid...")
     let urlRaw = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_URL")
     let keyRaw = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY")
-    
-    print("🔍 [Config] URL raw value: \(String(describing: urlRaw))")
-    print("🔍 [Config] Key raw value: \(String(describing: keyRaw))")
     
     // Try to load both values and check they're not empty
     if let url = urlRaw as? String,
       let key = keyRaw as? String
     {
-      let isValid = !url.isEmpty && !key.isEmpty
-      print("✅ [Config] Configuration valid: \(isValid)")
-      print("   - URL: \(url)")
-      print("   - Key length: \(key.count)")
-      return isValid
+      return !url.isEmpty && !key.isEmpty
     }
     
-    print("❌ [Config] Configuration invalid - missing or empty values")
     return false
   }
 }

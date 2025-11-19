@@ -104,14 +104,16 @@ struct SignInView: View {
     errorMessage = nil
 
     do {
-      try await supabaseManager.signInWithApple(idToken: idToken, nonce: nonce)
+      // Try with HASHED nonce first as that seems to be what Supabase expects with this configuration
+      let hashedNonce = sha256(nonce)
+      try await supabaseManager.signInWithApple(idToken: idToken, nonce: hashedNonce)
       print("✅ Successfully signed in with Apple")
       
       // Notify that auth is complete so ContentView can refresh
       NotificationCenter.default.post(name: .debugAuthCompleted, object: nil)
     } catch {
       print("❌ Sign in error: \(error)")
-      errorMessage = "Authentication failed: \(error.localizedDescription)"
+      errorMessage = "Authentication failed. Please try again."
     }
 
     isLoading = false

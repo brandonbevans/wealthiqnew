@@ -21,33 +21,21 @@ class SupabaseManager: ObservableObject {
     print("🚀 [SupabaseManager] Initializing Supabase client...")
     
     // Initialize Supabase client with configuration
-    print("🔍 [SupabaseManager] Checking configuration...")
     guard Config.isConfigured else {
-      print("❌ [SupabaseManager] Configuration check failed")
       fatalError(
         "Supabase configuration is missing or invalid. Please update Config.swift with your Supabase project details."
       )
     }
     
     let urlString = Config.supabaseURL
-    print("🔍 [SupabaseManager] URL string: \(urlString)")
     
     guard let supabaseURL = URL(string: urlString) else {
-      print("❌ [SupabaseManager] Invalid URL string: \(urlString)")
       fatalError(
         "Supabase URL is invalid: \(urlString). Please check your SUPABASE_URL configuration."
       )
     }
     
-    print("✅ [SupabaseManager] URL parsed successfully: \(supabaseURL)")
-    print("   - Scheme: \(supabaseURL.scheme ?? "none")")
-    print("   - Host: \(supabaseURL.host ?? "none")")
-    print("   - Port: \(supabaseURL.port?.description ?? "default")")
-    print("   - Path: \(supabaseURL.path)")
-
     let anonKey = Config.supabaseAnonKey
-    let maskedKey = anonKey.count > 10 ? "\(anonKey.prefix(10))...\(anonKey.suffix(10))" : "***"
-    print("✅ [SupabaseManager] Anon key loaded: \(maskedKey)")
 
     let options = SupabaseClientOptions(
       auth: .init(
@@ -55,7 +43,6 @@ class SupabaseManager: ObservableObject {
       )
     )
 
-    print("🔧 [SupabaseManager] Creating SupabaseClient...")
     self.client = SupabaseClient(
       supabaseURL: supabaseURL,
       supabaseKey: anonKey,
