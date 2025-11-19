@@ -1,4 +1,4 @@
-## WealthIQ Frontend
+## prime Frontend
 
 Next.js App Router project styled with Tailwind v4 preview utilities. The `/conversation` route is a debugging interface for the new FastAPI voice conversation service.
 

@@ -2,21 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Support Center | WealthIQ",
+  title: "Support Center | prime",
   description:
-    "Get help with WealthIQ. Find answers to frequently asked questions or contact our support team.",
+    "Get help with prime. Find answers to frequently asked questions or contact our support team.",
 };
 
 const faqs = [
   {
-    question: "How do I access my WealthIQ subscription?",
+    question: "How do I access my prime subscription?",
     answer:
-      "Once WealthIQ launches, you'll receive an email with your access code and instructions to redeem your complimentary 3-month subscription. Simply follow the instructions in the email to get started.",
+      "Once prime launches, you'll receive an email with your access code and instructions to redeem your complimentary 3-month subscription. Simply follow the instructions in the email to get started.",
   },
   {
     question: "What is the Golden Hour routine?",
     answer:
-      "The Golden Hour is WealthIQ's signature morning routine that combines reflection, goal alignment, and intentional action planning. It's designed to help you start each day with clarity and purpose.",
+      "The Golden Hour is prime's signature morning routine that combines reflection, goal alignment, and intentional action planning. It's designed to help you start each day with clarity and purpose.",
   },
   {
     question: "Can I cancel my subscription anytime?",
@@ -26,7 +26,7 @@ const faqs = [
   {
     question: "What happens after my free 3-month subscription ends?",
     answer:
-      "After your complimentary 3-month subscription expires, you can choose to continue with a paid subscription to maintain access to all WealthIQ features, or cancel anytime with no obligation.",
+      "After your complimentary 3-month subscription expires, you can choose to continue with a paid subscription to maintain access to all prime features, or cancel anytime with no obligation.",
   },
   {
     question: "Is my data secure and private?",
@@ -36,7 +36,7 @@ const faqs = [
   {
     question: "How do I reset my password or account?",
     answer:
-      "Once the app launches, you'll be able to manage your account settings directly within WealthIQ. For account-related issues, please contact our support team using the form below.",
+      "Once the app launches, you'll be able to manage your account settings directly within prime. For account-related issues, please contact our support team using the form below.",
   },
 ];
 
@@ -45,7 +45,7 @@ const contactMethods = [
     title: "Email Support",
     description: "Get help via email",
     action: "Send us an email",
-    href: "mailto:support@wealthiq.app",
+    href: "mailto:support@prime.app",
   },
   {
     title: "In-App Support",
@@ -73,7 +73,7 @@ export default function Support() {
             Support Center
           </h1>
           <p className="mt-4 text-lg leading-relaxed text-slate-300">
-            We&apos;re here to help you get the most out of WealthIQ. Find answers to
+            We&apos;re here to help you get the most out of prime. Find answers to
             common questions or reach out to our support team.
           </p>
         </header>
@@ -84,7 +84,7 @@ export default function Support() {
               Frequently Asked Questions
             </h2>
             <p className="mt-2 text-slate-400">
-              Quick answers to the most common questions about WealthIQ.
+              Quick answers to the most common questions about prime.
             </p>
           </div>
           <div className="space-y-4">
@@ -144,7 +144,7 @@ export default function Support() {
             concerns. We typically respond within 24-48 hours.
           </p>
           <a
-            href="mailto:support@wealthiq.app?subject=Support%20Request"
+            href="mailto:support@prime.app?subject=Support%20Request"
             className="mt-6 inline-flex items-center justify-center rounded-full border border-amber-200/60 bg-amber-200/20 px-6 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-200/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
           >
             Contact Support
@@ -153,7 +153,7 @@ export default function Support() {
 
         <footer className="mt-24 border-t border-white/10 pt-8 text-sm text-slate-500">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p>Copyright {year} WealthIQ. All rights reserved.</p>
+            <p>Copyright {year} prime. All rights reserved.</p>
             <div className="flex gap-6">
               <Link
                 href="/privacy"

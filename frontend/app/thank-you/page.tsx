@@ -4,7 +4,7 @@ const highlights = [
   {
     title: "Launch is close",
     description:
-      "We are putting the finishing touches on WealthIQ so you can build the confidence and habits that stick.",
+      "We are putting the finishing touches on prime so you can build the confidence and habits that stick.",
   },
   {
     title: "Golden Hour access",
@@ -30,7 +30,7 @@ export default function ThankYou() {
             Thank you
           </p>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            You are officially on the WealthIQ waitlist
+            You are officially on the prime waitlist
           </h1>
           <p className="text-lg leading-relaxed text-slate-300">
             We will email you within the next few weeks with your free 3-month subscription and your first look at the app. Keep an eye on your inbox (and maybe your spam folder) so you do not miss the launch.
@@ -81,10 +81,10 @@ export default function ThankYou() {
             Share the mission
           </h2>
           <p className="max-w-2xl text-base text-amber-100">
-            Know someone who is ready to upgrade their habits and self-belief? Invite them to join the WealthIQ waitlist so they can launch alongside you.
+            Know someone who is ready to upgrade their habits and self-belief? Invite them to join the prime waitlist so they can launch alongside you.
           </p>
           <a
-            href="mailto:?subject=Join%20me%20on%20the%20WealthIQ%20waitlist&body=I%20just%20joined%20the%20WealthIQ%20waitlist%20to%20get%20a%20free%203-month%20membership%20when%20it%20launches.%20You%20should%20grab%20your%20spot%20too:%20https://wealthiq.app"
+            href="mailto:?subject=Join%20me%20on%20the%20prime%20waitlist&body=I%20just%20joined%20the%20prime%20waitlist%20to%20get%20a%20free%203-month%20membership%20when%20it%20launches.%20You%20should%20grab%20your%20spot%20too:%20https://prime.app"
             className="inline-flex items-center justify-center rounded-full border border-amber-200/60 bg-amber-200/20 px-6 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-200/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
           >
             Invite a friend
@@ -93,12 +93,12 @@ export default function ThankYou() {
             href="/"
             className="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-amber-200/60 hover:text-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
           >
-            Back to WealthIQ home
+            Back to prime home
           </Link>
         </section>
 
         <footer className="mt-24 border-t border-white/10 pt-8 text-sm text-slate-500">
-          <p>Copyright {year} WealthIQ. All rights reserved.</p>
+          <p>Copyright {year} prime. All rights reserved.</p>
         </footer>
       </main>
     </div>

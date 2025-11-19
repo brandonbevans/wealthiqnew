@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | WealthIQ",
+  title: "Privacy Policy | prime",
   description:
-    "WealthIQ Privacy Policy. Learn how we collect, use, and protect your personal information.",
+    "prime Privacy Policy. Learn how we collect, use, and protect your personal information.",
 };
 
 const sections = [
@@ -50,18 +50,18 @@ const sections = [
 - Export your data
 - Withdraw consent at any time
 
-To exercise these rights, please contact us at privacy@wealthiq.app.`,
+To exercise these rights, please contact us at privacy@prime.app.`,
   },
   {
     title: "Third-Party Services",
-    content: `WealthIQ may integrate with third-party services for analytics, payment processing, and other functionality. These services have their own privacy policies. We use:
+    content: `prime may integrate with third-party services for analytics, payment processing, and other functionality. These services have their own privacy policies. We use:
 - Apple App Store (for subscription management)
 - Analytics providers (to understand app usage)
 - Cloud storage providers (to securely store your data)`,
   },
   {
     title: "Children's Privacy",
-    content: `WealthIQ is not intended for users under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.`,
+    content: `prime is not intended for users under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.`,
   },
   {
     title: "Changes to This Policy",
@@ -71,8 +71,8 @@ To exercise these rights, please contact us at privacy@wealthiq.app.`,
     title: "Contact Us",
     content: `If you have questions about this Privacy Policy or our data practices, please contact us at:
 
-Email: privacy@wealthiq.app
-Support: support@wealthiq.app`,
+Email: privacy@prime.app
+Support: support@prime.app`,
   },
 ];
 
@@ -98,7 +98,7 @@ export default function Privacy() {
             Last Updated: {lastUpdated}
           </p>
           <p className="mt-4 text-lg leading-relaxed text-slate-300">
-            At WealthIQ, we are committed to protecting your privacy. This Privacy
+            At prime, we are committed to protecting your privacy. This Privacy
             Policy explains how we collect, use, disclose, and safeguard your
             information when you use our mobile application and services.
           </p>
@@ -129,7 +129,7 @@ export default function Privacy() {
           </p>
           <div className="mt-6 flex flex-col gap-4 sm:flex-row">
             <a
-              href="mailto:privacy@wealthiq.app?subject=Privacy%20Policy%20Question"
+              href="mailto:privacy@prime.app?subject=Privacy%20Policy%20Question"
               className="inline-flex items-center justify-center rounded-full border border-amber-200/60 bg-amber-200/20 px-6 py-3 text-sm font-semibold text-amber-50 transition hover:bg-amber-200/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100"
             >
               Contact Privacy Team
@@ -145,7 +145,7 @@ export default function Privacy() {
 
         <footer className="mt-24 border-t border-white/10 pt-8 text-sm text-slate-500">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p>Copyright {year} WealthIQ. All rights reserved.</p>
+            <p>Copyright {year} prime. All rights reserved.</p>
             <div className="flex gap-6">
               <Link
                 href="/support"

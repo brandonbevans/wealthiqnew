@@ -86,14 +86,14 @@ export default function Home() {
         <header className="flex flex-col gap-14 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl space-y-8">
             <p className="text-sm font-semibold uppercase tracking-[0.35em] text-amber-300">
-              WealthIQ Coming Soon
+              prime Coming Soon
             </p>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
               Build the confidence, clarity, and habits that compound your
               success.
           </h1>
             <p className="text-lg leading-relaxed text-slate-300">
-              WealthIQ is the personal development operating system for people
+              prime is the personal development operating system for people
               who refuse to settle. Learn how self-esteem fuels performance,
               master goal setting, and build habits that keep you accountable to
               the future you deserve.
@@ -128,7 +128,7 @@ export default function Home() {
               )}
               <p className="text-sm text-slate-400">
                 Early supporters on the waitlist receive a complimentary 3-month
-                WealthIQ subscription at launch.
+                prime subscription at launch.
               </p>
             </form>
           </div>
@@ -137,7 +137,7 @@ export default function Home() {
               Your journey starts here
             </h2>
             <p className="text-sm text-slate-300">
-              WealthIQ helps you align who you are with who you want to become.
+              prime helps you align who you are with who you want to become.
             </p>
             <ul className="space-y-4 text-sm leading-relaxed text-slate-200">
               <li className="flex gap-3">
@@ -175,7 +175,7 @@ export default function Home() {
         <section className="mt-24 space-y-10">
           <div className="max-w-2xl space-y-3">
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">
-              Why WealthIQ works
+              Why prime works
             </p>
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               Four pillars to build unstoppable momentum
@@ -208,7 +208,7 @@ export default function Home() {
               Designed for the way high achievers really grow
             </h2>
             <p className="text-lg text-slate-300">
-              WealthIQ blends mindful reflection with execution muscle. It&apos;s the
+              prime blends mindful reflection with execution muscle. It&apos;s the
               toolkit for ambitious people who want their daily actions to match
               their deepest priorities.
             </p>
@@ -234,7 +234,7 @@ export default function Home() {
                 Bonus for early members
               </p>
               <p className="mt-2 text-lg text-amber-50">
-                Join the waitlist today and lock in a free 3-month WealthIQ
+                Join the waitlist today and lock in a free 3-month prime
                 subscription when we launch.
               </p>
             </div>
@@ -248,7 +248,7 @@ export default function Home() {
         </section>
 
         <footer className="mt-24 border-t border-white/10 pt-8 text-sm text-slate-500">
-          <p>Copyright {year} WealthIQ. All rights reserved.</p>
+          <p>Copyright {year} prime. All rights reserved.</p>
         </footer>
       </main>
     </div>
