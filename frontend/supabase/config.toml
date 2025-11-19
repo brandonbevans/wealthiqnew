@@ -270,7 +270,7 @@ max_frequency = "5s"
 # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
 [auth.external.apple]
 enabled = true
-client_id = "com.daytwo.wealthiq.signin"
+client_id = "com.daytwo.wealthiq.signin,com.daytwo.wealthiq"
 # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
 secret = "eyJhbGciOiJFUzI1NiIsImtpZCI6IloySkNYRzY2M00iLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiIyM0FLTVhWTUY0IiwiaWF0IjoxNzYwNjY1NDkwLCJleHAiOjIxOTI2NjU0OTAsImF1ZCI6Imh0dHBzOi8vYXBwbGVpZC5hcHBsZS5jb20iLCJzdWIiOiJjb20uZGF5dHdvLndlYWx0aGlxLnNpZ25pbiJ9.DyWyThIIWfB61fxL9pLjrLWaEgeBpWfd_8-IchHrZ-7V6Kflj4NxhPeKYhPE5arA1yRjCMFwWAl7p39IW2iiDQ"
 # Overrides the default auth redirectUrl.
