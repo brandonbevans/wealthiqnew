@@ -222,7 +222,8 @@ class SupabaseManager: ObservableObject {
   ) async throws -> String {
     let normalizedExtension = fileExtension.trimmingCharacters(in: .whitespacesAndNewlines)
     let safeExtension = normalizedExtension.isEmpty ? "mp3" : normalizedExtension
-    let objectPath = "sessions/\(userId.uuidString)/audio/\(sessionId.uuidString)/conversation.\(safeExtension)"
+    let userFolder = userId.uuidString.lowercased()
+    let objectPath = "\(userFolder)/audio/\(sessionId.uuidString)/conversation.\(safeExtension)"
 
     do {
       _ = try await client.storage

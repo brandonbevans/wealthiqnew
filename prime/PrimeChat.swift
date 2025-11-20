@@ -330,19 +330,11 @@ final class OrbConversationViewModel: ObservableObject {
   }
   
   private func requestMicrophonePermission() async -> Bool {
-    if #available(iOS 17.0, *) {
       return await withCheckedContinuation { continuation in
-        AVAudioApplication.requestRecordPermissionWithCompletionHandler { granted in
+        AVAudioApplication.requestRecordPermission { granted in
           continuation.resume(returning: granted)
         }
       }
-    }
-
-    return await withCheckedContinuation { continuation in
-      audioSession.requestRecordPermission { granted in
-        continuation.resume(returning: granted)
-      }
-    }
   }
   
   private func configureAudioSession() throws {
@@ -367,91 +359,81 @@ final class OrbConversationViewModel: ObservableObject {
 
   // MARK: - Session Archiving
 
-  private func archiveMostRecentConversation() async {
-    isArchivingSession = true
-    lastArchiveError = nil
+private func archiveMostRecentConversation() async {
+  isArchivingSession = true
+  lastArchiveError = nil
 
-    defer { isArchivingSession = false }
+  defer { isArchivingSession = false }
 
-    do {
-      let summaries = try await ElevenLabsAPI.fetchConversationSummaries()
-      guard
-        let conversationId = selectConversationId(
-          from: summaries,
-          startedAt: lastConversationStartDate
-        )
-      else {
-        print("⚠️ No matching conversation found to archive")
-        return
-      }
-
-      guard !archivedConversationIds.contains(conversationId) else {
-        print("ℹ️ Conversation \(conversationId) already archived")
-        return
-      }
-
-      try await archiveConversation(withId: conversationId)
-      archivedConversationIds.insert(conversationId)
-      lastConversationStartDate = nil
-    } catch {
-      lastArchiveError = error.localizedDescription
-      print("⚠️ Failed to archive conversation audio: \(error)")
-    }
-  }
-
-  private func selectConversationId(
-    from summaries: [ElevenLabsAPI.ConversationSummary],
-    startedAt startDate: Date?
-  ) -> String? {
-    guard !summaries.isEmpty else { return nil }
-
-    let ordered = summaries.sorted { $0.sortDate > $1.sortDate }
-
-    guard let startDate else {
-      return ordered.first?.id
+  do {
+    let summaries = try await ElevenLabsAPI.fetchConversationSummaries()
+    guard
+      let conversationId = selectConversationId(
+        from: summaries,
+        startedAt: lastConversationStartDate
+      )
+    else {
+      print("⚠️ No matching conversation found to archive")
+      return
     }
 
-    let windowStart = startDate.addingTimeInterval(-300) // 5 minutes before start
-    let windowEnd = Date().addingTimeInterval(600) // up to 10 minutes after now
+    guard !archivedConversationIds.contains(conversationId) else {
+      print("ℹ️ Conversation \(conversationId) already archived")
+      return
+    }
 
-    return ordered.first { summary in
-      guard let createdAt = summary.createdAt else { return true }
-      return createdAt >= windowStart && createdAt <= windowEnd
-    }?.id
+    try await archiveConversation(withId: conversationId)
+    archivedConversationIds.insert(conversationId)
+    lastConversationStartDate = nil
+  } catch {
+    lastArchiveError = error.localizedDescription
+    print("⚠️ Failed to archive conversation audio: \(error)")
+    print("Error: \(error)")
+      print("Error description: \(String(describing: lastArchiveError))")
   }
+}
+
+private func selectConversationId(
+  from summaries: [ElevenLabsAPI.ConversationSummary],
+  startedAt startDate: Date?
+) -> String? {
+  guard !summaries.isEmpty else { return nil }
+
+  let ordered = summaries.sorted { $0.sortDate > $1.sortDate }
+
+  guard let startDate else {
+    return ordered.first?.id
+  }
+
+  let windowStart = startDate.addingTimeInterval(-300) // 5 minutes before start
+  let windowEnd = Date().addingTimeInterval(600) // up to 10 minutes after now
+
+  return ordered.first { summary in
+    guard let createdAt = summary.createdAt else { return true }
+    return createdAt >= windowStart && createdAt <= windowEnd
+  }?.id
+}
 
   private func archiveConversation(withId conversationId: String) async throws {
     let userId = try await SupabaseManager.shared.getCurrentUserId()
+    var record = try await SupabaseManager.shared.fetchSessionRecord(conversationId: conversationId)
+    var sessionId = record?.id ?? UUID()
 
-    var existingRecord = try await SupabaseManager.shared.fetchSessionRecord(
-      conversationId: conversationId
-    )
-    var sessionId = existingRecord?.id ?? UUID()
-
-    if existingRecord == nil {
-      existingRecord = try await SupabaseManager.shared.insertSessionRecord(
+    if record == nil {
+      record = try await SupabaseManager.shared.insertSessionRecord(
         sessionId: sessionId,
         userId: userId,
         conversationId: conversationId
       )
-      if let persistedId = existingRecord?.id {
-        sessionId = persistedId
-      }
-    } else if let persistedId = existingRecord?.id {
-      sessionId = persistedId
+      sessionId = record?.id ?? sessionId
     }
 
-    let downloadedAudio = try await ElevenLabsAPI.downloadConversationAudio(
-      conversationId: conversationId
-    )
+    let downloadedAudio = try await downloadConversationAudioWithRetry(conversationId: conversationId)
 
-    let fileExtension = Self.preferredFileExtension(
-      agentFormat: nil,
-      mimeType: downloadedAudio.mimeType
-    )
+    let fileExtension = Self.preferredFileExtension(agentFormat: nil, mimeType: downloadedAudio.mimeType)
     let mimeType = downloadedAudio.mimeType ?? Self.defaultMimeType(forExtension: fileExtension)
 
-    let storagePath = try await SupabaseManager.shared.uploadSessionAudio(
+    _ = try await SupabaseManager.shared.uploadSessionAudio(
       data: downloadedAudio.data,
       userId: userId,
       sessionId: sessionId,
@@ -459,7 +441,20 @@ final class OrbConversationViewModel: ObservableObject {
       mimeType: mimeType
     )
 
-    print("✅ Archived conversation \(conversationId) to \(storagePath)")
+    print("✅ Archived conversation \(conversationId)")
+  }
+
+  private func downloadConversationAudioWithRetry(conversationId: String) async throws -> ElevenLabsAPI.DownloadedAudio {
+    let attempts = 3
+    for attempt in 1...attempts {
+      do {
+        return try await ElevenLabsAPI.downloadConversationAudio(conversationId: conversationId)
+      } catch ElevenLabsAPI.APIError.invalidResponse(statusCode: 404) where attempt < attempts {
+        try await Task.sleep(nanoseconds: 3 * 1_000_000_000) // wait 3s
+        continue
+      }
+    }
+    return try await ElevenLabsAPI.downloadConversationAudio(conversationId: conversationId)
   }
 
   private static func preferredFileExtension(
