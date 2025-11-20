@@ -116,28 +116,6 @@ struct OnboardingView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 8)  // Reduced padding - iOS handles safe area
       }
-
-      // Loading overlay
-      if viewModel.isSaving {
-        ZStack {
-          Color.black.opacity(0.4)
-            .ignoresSafeArea()
-
-          VStack(spacing: 16) {
-            ProgressView()
-              .progressViewStyle(CircularProgressViewStyle())
-              .scaleEffect(1.2)
-              .tint(.white)
-
-            Text("Saving your information...")
-              .font(.outfit(16, weight: .medium))
-              .foregroundColor(.white)
-          }
-          .padding(32)
-          .background(Color(red: 0.13, green: 0.06, blue: 0.16))
-          .cornerRadius(16)
-        }
-      }
     }
     .animation(.spring(response: 0.45, dampingFraction: 0.85), value: viewModel.currentStep)
     .animation(.easeInOut(duration: 0.2), value: viewModel.canContinue)

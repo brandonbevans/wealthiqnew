@@ -10,6 +10,10 @@
 	<string>$(ELEVENLABS_API_KEY)</string>
 	<key>ELEVENLABS_VOICE_ID</key>
 	<string>$(ELEVENLABS_VOICE_ID)</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Prime needs access to your microphone to talk with your AI coach.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Prime uses speech recognition to transcribe your goals.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

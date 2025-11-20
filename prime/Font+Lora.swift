@@ -47,16 +47,7 @@ enum LoraFontWeight: String {
 
 extension Font {
     static func lora(_ size: CGFloat, weight: LoraFontWeight = .regular) -> Font {
-#if canImport(UIKit)
-        let fontName = "Lora-\(weight.rawValue)"
-        if UIFont(name: fontName, size: size) != nil {
-            return Font.custom(fontName, size: size)
-        } else {
-            return .system(size: size, weight: weight.fontWeight, design: .serif)
-        }
-#else
-        return .system(size: size, weight: weight.fontWeight, design: .serif)
-#endif
+        return .system(size: size, weight: weight.fontWeight)
     }
 }
 

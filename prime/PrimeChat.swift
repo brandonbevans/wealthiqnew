@@ -10,6 +10,7 @@ import SwiftUI
 import ElevenLabs
 import Combine
 import LiveKit
+import AVFoundation
 
 // MARK: - Connection State
 
@@ -25,6 +26,7 @@ enum ConnectionState {
 
 struct AnimatedOrbView: View {
   let agentState: ElevenLabs.AgentState
+  var size: CGFloat = 160 // Default size
   @State private var pulseAmount: CGFloat = 1.0
   @State private var rotation: Double = 0
   
@@ -35,6 +37,7 @@ struct AnimatedOrbView: View {
       shimmerEffect
       stateIcon
     }
+    .frame(width: size, height: size)
     .onAppear {
       startAnimation()
     }
@@ -48,7 +51,7 @@ struct AnimatedOrbView: View {
       Circle()
         .stroke(lineWidth: 2)
         .foregroundStyle(ringGradient)
-        .frame(width: baseSize + CGFloat(index * 30), height: baseSize + CGFloat(index * 30))
+        .frame(width: size + CGFloat(index) * (size * 0.2), height: size + CGFloat(index) * (size * 0.2))
         .scaleEffect(pulseAmount + CGFloat(index) * 0.1)
         .opacity(1.0 - Double(index) * 0.3)
     }
@@ -68,8 +71,8 @@ struct AnimatedOrbView: View {
   private var mainOrb: some View {
     Circle()
       .fill(orbGradient)
-      .frame(width: baseSize, height: baseSize)
-      .shadow(color: Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.5), radius: 20, x: 0, y: 10)
+      .frame(width: size, height: size)
+      .shadow(color: Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.5), radius: size * 0.125, x: 0, y: size * 0.06)
       .scaleEffect(pulseAmount)
   }
   
@@ -82,16 +85,16 @@ struct AnimatedOrbView: View {
       ],
       center: .topLeading,
       startRadius: 0,
-      endRadius: 100
+      endRadius: size * 0.625
     )
   }
   
   private var shimmerEffect: some View {
     Circle()
       .fill(shimmerGradient)
-      .frame(width: baseSize * 0.6, height: baseSize * 0.6)
+      .frame(width: size * 0.6, height: size * 0.6)
       .rotationEffect(.degrees(rotation))
-      .blur(radius: 8)
+      .blur(radius: size * 0.05)
   }
   
   private var shimmerGradient: AngularGradient {
@@ -108,12 +111,10 @@ struct AnimatedOrbView: View {
   
   private var stateIcon: some View {
     Image(systemName: iconName)
-      .font(.system(size: 32, weight: .semibold))
+      .font(.system(size: size * 0.2, weight: .semibold))
       .foregroundColor(.white)
       .scaleEffect(pulseAmount)
   }
-  
-  private var baseSize: CGFloat { 160 }
   
   private var iconName: String {
     switch agentState {
@@ -185,8 +186,10 @@ final class OrbConversationViewModel: ObservableObject {
   @Published var errorMessage: String?
   @Published var isInteractive: Bool = false
   @Published var userProfile: SupabaseManager.UserProfile?
+  @Published var microphoneDenied: Bool = false
   
   private var cancellables = Set<AnyCancellable>()
+  private let audioSession = AVAudioSession.sharedInstance()
   
   func loadUserProfile() async {
     do {
@@ -211,6 +214,16 @@ final class OrbConversationViewModel: ObservableObject {
     errorMessage = nil
     
     do {
+      let hasPermission = await requestMicrophonePermission()
+      guard hasPermission else {
+        microphoneDenied = true
+        connectionState = .idle
+        errorMessage = "Microphone access is required to talk to your coach."
+        return
+      }
+      
+      try configureAudioSession()
+      
       // Prepare dynamic variables to pass to the agent
       var dynamicVariables: [String: String] = [:]
       
@@ -252,7 +265,7 @@ final class OrbConversationViewModel: ObservableObject {
     }
   }
   
-  private func endConversation() async {
+  func endConversation() async {
     await conversation?.endConversation()
     conversation = nil
     isConnected = false
@@ -302,6 +315,34 @@ final class OrbConversationViewModel: ObservableObject {
         }
       }
       .store(in: &cancellables)
+  }
+  
+  private func requestMicrophonePermission() async -> Bool {
+    await withCheckedContinuation { continuation in
+      audioSession.requestRecordPermission { granted in
+        continuation.resume(returning: granted)
+      }
+    }
+  }
+  
+  private func configureAudioSession() throws {
+    let currentCategory = audioSession.category
+    let requiredCategory: AVAudioSession.Category = .playAndRecord
+    let requiredMode: AVAudioSession.Mode = .voiceChat
+    
+    if currentCategory != requiredCategory || audioSession.mode != requiredMode {
+      try audioSession.setCategory(
+        requiredCategory,
+        mode: requiredMode,
+        options: [.allowBluetooth, .defaultToSpeaker]
+      )
+    }
+    
+    if !audioSession.isOtherAudioPlaying {
+      try audioSession.setActive(true, options: [.notifyOthersOnDeactivation])
+    } else {
+      try audioSession.setActive(true)
+    }
   }
 }
 
@@ -361,318 +402,227 @@ struct WarningBanner: View {
   }
 }
 
-struct AgentListeningIndicator: View {
-  var body: some View {
-    HStack(spacing: 8) {
-      Circle()
-        .fill(Color.green)
-        .frame(width: 8, height: 8)
-      
-      Text("Listening...")
-        .font(.system(size: 14, weight: .medium))
-        .foregroundColor(.gray)
-    }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 8)
-    .background(Color.white.opacity(0.9))
-    .cornerRadius(20)
-    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-  }
-}
-
 // MARK: - Main View
 
 struct PrimeChat: View {
-  @State private var currentAgentIndex = 0
   @StateObject private var viewModel = OrbConversationViewModel()
   
-  let agents = [
-    Agent(
-      id: Config.elevenLabsAgentId,
-      name: "Coach",
-      description: "Your personal coach"
-    )
-  ]
-  
-  private func beginConversation(agent: Agent) {
-    Task {
-      await viewModel.toggleConversation(agentId: agent.id)
-    }
-  }
+  // Use the Agent ID from config directly.
+  // If it's empty, we pass empty string, which relies on SDK default behavior or failing gracefully.
+  private let agentId = Config.elevenLabsAgentId
   
   var body: some View {
     ZStack(alignment: .top) {
-      // Background gradient
-      LinearGradient(
-        colors: [
-          Color(red: 0.95, green: 0.95, blue: 0.98),
-          Color(red: 0.98, green: 0.96, blue: 1.0)
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      // Background
+      Color.white.ignoresSafeArea()
+      
+      // Decorative Background Elements
+      GeometryReader { geometry in
+        ZStack {
+          // Soft blue/purple gradients
+          Circle()
+            .fill(Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.1))
+            .frame(width: 300, height: 300)
+            .blur(radius: 60)
+            .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.3)
+          
+          Circle()
+            .fill(Color.blue.opacity(0.1))
+            .frame(width: 250, height: 250)
+            .blur(radius: 50)
+            .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.6)
+        }
+      }
       .ignoresSafeArea()
       
-      if viewModel.isInteractive {
-        interactionView()
-      } else {
-        startView()
-      }
-      
-      // Warning banner for reconnecting state
-      if case .reconnecting = viewModel.connectionState {
-        VStack {
-          WarningBanner(message: "Reconnecting...")
+      VStack(spacing: 0) {
+        // Top Bar
+        HStack {
+          // Profile / Session Indicator
+          HStack(spacing: 8) {
+            HStack(spacing: 4) {
+              Circle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(width: 20, height: 20)
+                .overlay(
+                  Image(systemName: "person.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                )
+              
+              Text("1")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.black)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color(red: 0.96, green: 0.97, blue: 0.98)) // #F4F8FB
+            .cornerRadius(20)
+            
+            Spacer()
+            
+            // User Profile Picture
+            Circle()
+              .stroke(Color.white.opacity(0.3), lineWidth: 1)
+              .background(
+                Circle().fill(Color.gray.opacity(0.2))
+              )
+              .frame(width: 40, height: 40)
+              .overlay(
+                Text(viewModel.userProfile?.firstName.prefix(1).uppercased() ?? "U")
+                  .font(.system(size: 16, weight: .semibold))
+                  .foregroundColor(.gray)
+              )
+          }
+          .padding(.horizontal, 20)
+            .padding(.top, 16)
+          
           Spacer()
         }
-        .transition(.move(edge: .top).combined(with: .opacity))
+        
+        Spacer()
+        
+        // Center Content
+        VStack(spacing: 32) {
+          if !viewModel.isConnected {
+            // Central decorative element (MaskGroup in Figma) - Simplified
+             ZStack {
+               Circle()
+                 .fill(Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.05))
+                 .frame(width: 150, height: 150)
+               
+               Image(systemName: "sparkles")
+                 .font(.system(size: 40))
+                 .foregroundStyle(
+                    LinearGradient(
+                      colors: [Color(red: 0.39, green: 0.27, blue: 0.92), Color.blue],
+                      startPoint: .topLeading,
+                      endPoint: .bottomTrailing
+                    )
+                 )
+             }
+          
+          VStack(spacing: 8) {
+               Text("Hi \(viewModel.userProfile?.firstName ?? "there"), Welcome to Prime.")
+                 .font(.system(size: 24, weight: .regular))
+              .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
+                 .multilineTextAlignment(.center)
+               
+               Text("I am your personal AI coach that helps you get things done.")
+                 .font(.system(size: 20, weight: .regular))
+                 .foregroundColor(Color.black.opacity(0.3)) // #211028 with 0.28 opacity
+                 .multilineTextAlignment(.center)
+                 .padding(.horizontal, 40)
+             }
+          } else {
+             // When connected, show status
+             VStack(spacing: 16) {
+                Text(viewModel.isSpeaking ? "Speaking..." : "Listening...")
+                 .font(.system(size: 24, weight: .medium))
+                 .foregroundColor(Color(red: 0.39, green: 0.27, blue: 0.92))
+          }
+          }
+        }
+        
+        Spacer()
+        
+        // Bottom Control Bar
+        HStack(spacing: 16) {
+          // Delete / Reset Button
+          Button(action: {
+            Task {
+               await viewModel.endConversation()
+            }
+          }) {
+              Circle()
+               .fill(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.2)) // #8d8d8d roughly
+               .frame(width: 50, height: 50)
+               .overlay(
+                 Image(systemName: "trash")
+                   .font(.system(size: 20))
+                   .foregroundColor(.white)
+               )
+          }
+          
+          // Center Pulse / Orb Button
+          Button(action: {
+             Task {
+                await viewModel.toggleConversation(agentId: agentId)
+            }
+          }) {
+             ZStack {
+                if viewModel.isConnected {
+                   // Show animated orb when connected
+                   AnimatedOrbView(agentState: viewModel.conversation?.agentState ?? .listening, size: 80)
+                } else {
+                   // Idle state
+                   Circle()
+                     .fill(Color.white)
+                     .frame(width: 80, height: 80)
+                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                     .overlay(
+                        Image(systemName: "waveform")
+                           .font(.system(size: 30))
+                           .foregroundColor(Color(red: 0.39, green: 0.27, blue: 0.92))
+                     )
+                }
+             }
+          }
+          .frame(width: 80, height: 80)
+          
+          // Transcribe Button
+          Button(action: {
+             // Placeholder for transcribe action
+             print("Transcribe tapped")
+          }) {
+             Circle()
+               .fill(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.2))
+               .frame(width: 50, height: 50)
+               .overlay(
+                 Image(systemName: "text.bubble")
+                   .font(.system(size: 20))
+                   .foregroundColor(.white)
+               )
+          }
+        }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 12)
+        .background(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.3)) // Gray bar background
+        .cornerRadius(40)
+        .padding(.bottom, 30)
+        .padding(.horizontal, 20)
       }
       
-      // Error banner
-      if let errorMessage = viewModel.errorMessage {
+      // Banners
         VStack {
+        if case .reconnecting = viewModel.connectionState {
+          WarningBanner(message: "Reconnecting...")
+            .transition(.move(edge: .top).combined(with: .opacity))
+        }
+        
+        if let errorMessage = viewModel.errorMessage {
           ErrorBanner(message: errorMessage) {
             viewModel.errorMessage = nil
           }
-          Spacer()
+          .transition(.move(edge: .top).combined(with: .opacity))
         }
-        .transition(.move(edge: .top).combined(with: .opacity))
-      }
     }
-    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isInteractive)
-    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.connectionState)
-    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.errorMessage)
-    .navigationTitle("Conversation")
-    .navigationBarTitleDisplayMode(.inline)
+  }
     .onAppear {
       Task {
-        // Load user profile first
         await viewModel.loadUserProfile()
-        
-        // Auto-start conversation when view appears
-        if !viewModel.isConnected && viewModel.connectionState == .idle {
-          beginConversation(agent: agents[currentAgentIndex])
-        }
-      }
-    }
-  }
-  
-  @ViewBuilder
-  private func startView() -> some View {
-    GeometryReader { geometry in
-      VStack(spacing: 0) {
-        // Logo at top
-        VStack {
-          Image("logo")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 40)
-            .padding(.top, 16)
-          
-          Spacer()
-        }
-        
-        // Main content
-        VStack(spacing: 24) {
-          AnimatedOrbView(agentState: .listening)
-            .frame(width: 200, height: 200)
-            .padding(.bottom, 12)
-          
-          VStack(spacing: 8) {
-            Text(agents[currentAgentIndex].name)
-              .font(.system(size: 32, weight: .bold))
-              .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
-            
-            Text(agents[currentAgentIndex].description)
-              .font(.system(size: 18, weight: .medium))
-              .foregroundColor(.gray)
-          }
-          
-          // Agent indicators
-          HStack(spacing: 12) {
-            ForEach(0..<agents.count, id: \.self) { index in
-              Circle()
-                .fill(index == currentAgentIndex ? Color(red: 0.39, green: 0.27, blue: 0.92) : Color.gray.opacity(0.3))
-                .frame(width: 10, height: 10)
-                .scaleEffect(index == currentAgentIndex ? 1.2 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: currentAgentIndex)
-            }
-          }
-          .padding(.top, 8)
-          
-          Spacer()
-            .frame(height: 40)
-          
-          CallButton(
-            isConnected: viewModel.isConnected,
-            connectionState: viewModel.connectionState,
-            action: { beginConversation(agent: agents[currentAgentIndex]) }
-          )
-          .padding(.bottom, 60)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: geometry.size.height)
-      }
-    }
-    .gesture(
-      DragGesture(minimumDistance: 30)
-        .onEnded { value in
-          guard !viewModel.isConnected else { return }
-          
-          withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            if value.translation.width < -50 && currentAgentIndex < agents.count - 1 {
-              currentAgentIndex += 1
-            } else if value.translation.width > 50 && currentAgentIndex > 0 {
-              currentAgentIndex -= 1
-            }
           }
         }
-    )
-  }
-  
-  @ViewBuilder
-  private func interactionView() -> some View {
-    GeometryReader { geometry in
-      VStack(spacing: 0) {
-        // Logo at top
-        VStack {
-          Image("logo")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 40)
-            .padding(.top, 16)
-          
-          Spacer()
-        }
-        
-        // Conversation content
-        VStack(spacing: 24) {
-          Spacer()
-          
-          // Animated orb that reacts to agent state
-          AnimatedOrbView(agentState: viewModel.conversation?.agentState ?? .listening)
-            .frame(width: 200, height: 200)
-            .padding(.bottom, 12)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.conversation?.agentState)
-          
-          VStack(spacing: 8) {
-            Text(agents[currentAgentIndex].name)
-              .font(.system(size: 32, weight: .bold))
-              .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
-            
-            Text(viewModel.isSpeaking ? "Speaking..." : "Listening...")
-              .font(.system(size: 18, weight: .medium))
-              .foregroundColor(viewModel.isSpeaking ? Color(red: 0.39, green: 0.27, blue: 0.92) : .gray)
-          }
-          
-          Spacer()
-          
-          CallButton(
-            isConnected: viewModel.isConnected,
-            connectionState: viewModel.connectionState,
-            action: { beginConversation(agent: agents[currentAgentIndex]) }
-          )
-          .padding(.bottom, 60)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: geometry.size.height)
+    .onDisappear {
+      Task {
+        if viewModel.isConnected {
+          await viewModel.endConversation()
       }
     }
   }
 }
-
-// MARK: - Call Button Component
-struct CallButton: View {
-  let isConnected: Bool
-  let connectionState: ConnectionState
-  let action: () -> Void
-  
-  private var buttonIcon: String {
-    switch connectionState {
-    case .connecting:
-      return "phone.fill"
-    case .active:
-      return "phone.down.fill"
-    default:
-      return "phone.fill"
-    }
-  }
-  
-  private var buttonColor: Color {
-    switch connectionState {
-    case .connecting:
-      return Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.7)
-    case .active:
-      return .red
-    default:
-      return Color(red: 0.39, green: 0.27, blue: 0.92)
-    }
-  }
-  
-  private var buttonText: String? {
-    switch connectionState {
-    case .connecting:
-      return "Connecting..."
-    default:
-      return nil
-    }
-  }
-  
-  var body: some View {
-    VStack(spacing: 12) {
-      Button(action: action) {
-        ZStack {
-          Circle()
-            .fill(buttonColor)
-            .frame(width: 72, height: 72)
-            .shadow(color: buttonColor.opacity(0.4), radius: 12, x: 0, y: 6)
-          
-          if connectionState == .connecting {
-            ProgressView()
-              .tint(.white)
-              .scaleEffect(1.2)
-          } else {
-            Image(systemName: buttonIcon)
-              .font(.system(size: 28, weight: .semibold))
-              .foregroundColor(.white)
-          }
-        }
-        .scaleEffect(isConnected ? 1.1 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isConnected)
-      }
-      .disabled(connectionState == .connecting)
-      
-      if let text = buttonText {
-        Text(text)
-          .font(.system(size: 14, weight: .medium))
-          .foregroundColor(.gray)
-          .transition(.opacity)
-      } else if isConnected {
-        Text("Tap to end")
-          .font(.system(size: 14, weight: .medium))
-          .foregroundColor(.red)
-          .transition(.opacity)
-      } else {
-        Text("Tap to start")
-          .font(.system(size: 14, weight: .medium))
-          .foregroundColor(Color(red: 0.39, green: 0.27, blue: 0.92))
-          .transition(.opacity)
-      }
-    }
-    .animation(.easeInOut(duration: 0.2), value: connectionState)
-    .animation(.easeInOut(duration: 0.2), value: isConnected)
-  }
-}
-
-// MARK: - Types and Preview
-struct Agent {
-  let id: String
-  let name: String
-  let description: String
 }
 
 #Preview {
   PrimeChat()
 }
-
-

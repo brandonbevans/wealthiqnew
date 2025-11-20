@@ -252,6 +252,14 @@ class OnboardingViewModel: ObservableObject {
   }
 
   func nextStep() {
+    // Stop recording if active before moving to next step
+    if speechManager.isRecording {
+      speechManager.stopRecording()
+      activeRecordingField = nil
+      textBeforeRecording = ""
+      isRecording = false
+    }
+
     // Save current step data before moving to next
     Task {
       await saveCurrentStepData()

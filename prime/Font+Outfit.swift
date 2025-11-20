@@ -42,16 +42,7 @@ enum OutfitFontWeight: String {
 
 extension Font {
     static func outfit(_ size: CGFloat, weight: OutfitFontWeight = .regular) -> Font {
-#if canImport(UIKit)
-        let fontName = "Outfit-\(weight.rawValue)"
-        if UIFont(name: fontName, size: size) != nil {
-            return Font.custom(fontName, size: size)
-        } else {
-            return .system(size: size, weight: weight.fontWeight)
-        }
-#else
         return .system(size: size, weight: weight.fontWeight)
-#endif
     }
 }
 
