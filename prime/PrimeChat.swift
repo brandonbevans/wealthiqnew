@@ -193,6 +193,7 @@ final class OrbConversationViewModel: ObservableObject {
   
   private var cancellables = Set<AnyCancellable>()
   private let audioSession = AVAudioSession.sharedInstance()
+  private let conversationAudioEngine = ConversationAudioEngine.shared
   private var lastConversationStartDate: Date?
   private var archivedConversationIds = Set<String>()
   
@@ -266,6 +267,7 @@ final class OrbConversationViewModel: ObservableObject {
       lastConversationStartDate = Date()
       isInteractive = true
       setupObservers(for: conv)
+      conversationAudioEngine.start(for: conv)
     } catch {
       print("Error starting conversation: \(error)")
       errorMessage = error.localizedDescription
@@ -275,6 +277,7 @@ final class OrbConversationViewModel: ObservableObject {
   
   func endConversation() async {
     await conversation?.endConversation()
+    conversationAudioEngine.stop()
     conversation = nil
     isConnected = false
     isSpeaking = false
@@ -300,9 +303,10 @@ final class OrbConversationViewModel: ObservableObject {
         case .connecting:
           self?.isConnected = false
           self?.connectionState = .connecting
-        default:
+        case .ended, .idle, .error:
           self?.isConnected = false
           self?.connectionState = .idle
+          self?.conversationAudioEngine.stop()
         }
       }
       .store(in: &cancellables)
@@ -322,7 +326,7 @@ final class OrbConversationViewModel: ObservableObject {
         case .thinking:
           self.isSpeaking = true
           self.audioLevel = 0.5
-        default:
+        @unknown default:
           break
         }
       }

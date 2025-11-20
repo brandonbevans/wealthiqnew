@@ -10,6 +10,7 @@
 		602E2C5B2ECBFFEA009CEC19 /* JWTKit in Frameworks */ = {isa = PBXBuildFile; productRef = 602E2C5A2ECBFFEA009CEC19 /* JWTKit */; };
 		60C80DF62EC2857B00090352 /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = 60C80DF52EC2857B00090352 /* SuperwallKit */; };
 		60D0C0012F2A5B120044D7C0 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 60D0C0022F2A5B120044D7C0 /* Supabase */; };
+		60D6B0022F3C2E8700B3F6F0 /* Resources/Audio/BackgroundLoop.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 60D6B0012F3C2E8700B3F6F0 /* Resources/Audio/BackgroundLoop.mp4 */; };
 		60F9E6DF2ECBB6EB00B85991 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 60F9E6DE2ECBB6EB00B85991 /* Auth */; };
 		60F9E6E12ECBB6EB00B85991 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 60F9E6E02ECBB6EB00B85991 /* Functions */; };
 		60F9E6E32ECBB6EB00B85991 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 60F9E6E22ECBB6EB00B85991 /* PostgREST */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		60D6B0012F3C2E8700B3F6F0 /* Resources/Audio/BackgroundLoop.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = Resources/Audio/BackgroundLoop.mp4; sourceTree = SOURCE_ROOT; };
 		60FFAB1E2EC221610044D7C0 /* Prime.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Prime.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -52,11 +54,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		60D6B0002F3C2E4A00B3F6F0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				60D6B0012F3C2E8700B3F6F0 /* Resources/Audio/BackgroundLoop.mp4 */,
+			);
+			path = Resources;
+			sourceTree = SOURCE_ROOT;
+		};
 		60FFAB152EC221610044D7C0 = {
 			isa = PBXGroup;
 			children = (
 				60FFAB202EC221610044D7C0 /* prime */,
 				60FFAB1F2EC221610044D7C0 /* Products */,
+				60D6B0002F3C2E4A00B3F6F0 /* Resources */,
 			);
 			sourceTree = "<group>";
 		};
@@ -149,6 +160,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				60D6B0022F3C2E8700B3F6F0 /* Resources/Audio/BackgroundLoop.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
