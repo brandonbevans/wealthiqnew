@@ -80,7 +80,7 @@ final class ConversationAudioEngine: NSObject {
   private let processingQueue = DispatchQueue(label: "com.prime.audio.conversation-engine")
   
   private let idleVolume: Float = 0.35
-  private let aiSpeakingVolume: Float = 0.05
+  private let aiSpeakingVolume: Float = 0.1
   private let micSpeakingVolume: Float = 0.10
   private let aiRmsThreshold: Float = 0.001
   private let micRmsThreshold: Float = 0.0015
@@ -95,9 +95,11 @@ final class ConversationAudioEngine: NSObject {
   private let voiceGateDelay: TimeInterval = 1.0
   private var voiceGateReady = false
   private var pendingVoiceBuffers: [(buffer: AVAudioPCMBuffer, rms: Float)] = []
+  private var agentSpeaking = false
   
   private var isConfigured = false
   private var isRunning = false
+  private var musicPlaying = false
   
   private override init() {
     super.init()
@@ -116,6 +118,7 @@ final class ConversationAudioEngine: NSObject {
       self.startEngineIfNeeded()
       self.configureSmoothingTimerIfNeeded()
       self.isRunning = true
+      self.musicPlaying = true
     }
   }
   
@@ -124,6 +127,13 @@ final class ConversationAudioEngine: NSObject {
       guard self.isRunning else { return }
       self.installRenderers()
       self.prepareVoiceGate()
+    }
+  }
+  
+  func setAgentSpeaking(_ speaking: Bool) {
+    processingQueue.async {
+      self.agentSpeaking = speaking
+      self.updateTargetVolume()
     }
   }
   
@@ -195,6 +205,7 @@ private extension ConversationAudioEngine {
     musicNode.scheduleBuffer(loopBuffer, at: nil, options: [.loops])
     musicNode.play()
     musicNode.volume = currentVolume
+    musicPlaying = true
   }
   
   func stopLocked() {
@@ -205,6 +216,7 @@ private extension ConversationAudioEngine {
     
     musicNode.stop()
     musicNode.reset()
+    musicPlaying = false
     
     if engine.isRunning {
       engine.stop()
@@ -419,7 +431,7 @@ private extension ConversationAudioEngine {
     let aiDb = 20 * log10(max(aiLevel, 1e-7))
     let micDb = 20 * log10(max(micLevel, 1e-7))
     
-    let aiActive = aiLevel > aiRmsThreshold || aiDb > aiDbThreshold
+    let aiActive = agentSpeaking || aiLevel > aiRmsThreshold || aiDb > aiDbThreshold
     let micActive = micLevel > micRmsThreshold || micDb > micDbThreshold
     
     // Debug logging

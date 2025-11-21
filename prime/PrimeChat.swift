@@ -323,14 +323,17 @@ final class OrbConversationViewModel: ObservableObject {
         case .listening:
           self.isSpeaking = false
           self.audioLevel = 0.1
+          self.conversationAudioEngine.setAgentSpeaking(false)
         case .speaking:
           self.isSpeaking = true
           self.audioLevel = 0.7
+          self.conversationAudioEngine.setAgentSpeaking(true)
         case .thinking:
           self.isSpeaking = true
           self.audioLevel = 0.5
+          self.conversationAudioEngine.setAgentSpeaking(false)
         @unknown default:
-          break
+          self.conversationAudioEngine.setAgentSpeaking(false)
         }
       }
       .store(in: &cancellables)
