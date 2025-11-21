@@ -56,6 +56,7 @@ struct ElevenLabsAPI {
   struct ConversationSummary: Decodable {
     let id: String
     let name: String?
+    let agentId: String?
     private let createdAtRaw: String?
     private let updatedAtRaw: String?
     private let lastInteractionAtRaw: String?
@@ -64,14 +65,16 @@ struct ElevenLabsAPI {
       case id
       case conversationId = "conversation_id"
       case name
+      case agentId = "agent_id"
       case createdAtRaw = "created_at"
       case updatedAtRaw = "updated_at"
       case lastInteractionAtRaw = "last_interaction_at"
     }
 
-    init(id: String, name: String?, createdAtRaw: String?, updatedAtRaw: String?, lastInteractionAtRaw: String?) {
+    init(id: String, name: String?, agentId: String?, createdAtRaw: String?, updatedAtRaw: String?, lastInteractionAtRaw: String?) {
       self.id = id
       self.name = name
+      self.agentId = agentId
       self.createdAtRaw = createdAtRaw
       self.updatedAtRaw = updatedAtRaw
       self.lastInteractionAtRaw = lastInteractionAtRaw
@@ -93,6 +96,7 @@ struct ElevenLabsAPI {
         )
       }
       name = try container.decodeIfPresent(String.self, forKey: .name)
+      agentId = try container.decodeIfPresent(String.self, forKey: .agentId)
       createdAtRaw = try container.decodeIfPresent(String.self, forKey: .createdAtRaw)
       updatedAtRaw = try container.decodeIfPresent(String.self, forKey: .updatedAtRaw)
       lastInteractionAtRaw = try container.decodeIfPresent(String.self, forKey: .lastInteractionAtRaw)

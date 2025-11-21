@@ -61,8 +61,8 @@ struct AnimatedOrbView: View {
   private var ringGradient: LinearGradient {
     LinearGradient(
       colors: [
-        Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.6),
-        Color.purple.opacity(0.3)
+        Color.primePrimary.opacity(0.6),
+        Color.primePrimaryLight.opacity(0.3)
       ],
       startPoint: .topLeading,
       endPoint: .bottomTrailing
@@ -73,16 +73,16 @@ struct AnimatedOrbView: View {
     Circle()
       .fill(orbGradient)
       .frame(width: size, height: size)
-      .shadow(color: Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.5), radius: size * 0.125, x: 0, y: size * 0.06)
+      .shadow(color: Color.primePrimary.opacity(0.5), radius: size * 0.125, x: 0, y: size * 0.06)
       .scaleEffect(pulseAmount)
   }
   
   private var orbGradient: RadialGradient {
     RadialGradient(
       colors: [
-        Color(red: 0.5, green: 0.3, blue: 1.0),
-        Color(red: 0.39, green: 0.27, blue: 0.92),
-        Color(red: 0.3, green: 0.2, blue: 0.7)
+        Color.primePrimaryLight,
+        Color.primePrimary,
+        Color.primePrimaryDark
       ],
       center: .topLeading,
       startRadius: 0,
@@ -232,9 +232,6 @@ final class OrbConversationViewModel: ObservableObject {
       
       try configureAudioSession()
       
-      // Start music immediately
-      conversationAudioEngine.startMusic()
-      
       // Prepare dynamic variables to pass to the agent
       var dynamicVariables: [String: String] = [:]
       
@@ -270,6 +267,7 @@ final class OrbConversationViewModel: ObservableObject {
       lastConversationStartDate = Date()
       isInteractive = true
       setupObservers(for: conv)
+      conversationAudioEngine.startMusic()
       conversationAudioEngine.attach(conversation: conv)
     } catch {
       print("Error starting conversation: \(error)")
@@ -310,6 +308,8 @@ final class OrbConversationViewModel: ObservableObject {
           self?.isConnected = false
           self?.connectionState = .idle
           self?.conversationAudioEngine.stop()
+        @unknown default:
+          break
         }
       }
       .store(in: &cancellables)
@@ -323,17 +323,14 @@ final class OrbConversationViewModel: ObservableObject {
         case .listening:
           self.isSpeaking = false
           self.audioLevel = 0.1
-          self.conversationAudioEngine.setAgentSpeaking(false)
         case .speaking:
           self.isSpeaking = true
           self.audioLevel = 0.7
-          self.conversationAudioEngine.setAgentSpeaking(true)
         case .thinking:
           self.isSpeaking = true
           self.audioLevel = 0.5
-          self.conversationAudioEngine.setAgentSpeaking(false)
         @unknown default:
-          self.conversationAudioEngine.setAgentSpeaking(false)
+          break
         }
       }
       .store(in: &cancellables)
@@ -369,62 +366,64 @@ final class OrbConversationViewModel: ObservableObject {
 
   // MARK: - Session Archiving
 
-private func archiveMostRecentConversation() async {
-  isArchivingSession = true
-  lastArchiveError = nil
+  private func archiveMostRecentConversation() async {
+    isArchivingSession = true
+    lastArchiveError = nil
 
-  defer { isArchivingSession = false }
+    defer { isArchivingSession = false }
 
-  do {
-    let summaries = try await ElevenLabsAPI.fetchConversationSummaries()
-    guard
-      let conversationId = selectConversationId(
-        from: summaries,
-        startedAt: lastConversationStartDate
-      )
-    else {
-      print("⚠️ No matching conversation found to archive")
-      return
-    }
+    do {
+      let summaries = try await ElevenLabsAPI.fetchConversationSummaries()
+      guard
+        let summary = selectConversationSummary(
+          from: summaries,
+          startedAt: lastConversationStartDate
+        )
+      else {
+        print("⚠️ No matching conversation found to archive")
+        return
+      }
 
-    guard !archivedConversationIds.contains(conversationId) else {
-      print("ℹ️ Conversation \(conversationId) already archived")
-      return
-    }
+      let conversationId = summary.id
 
-    try await archiveConversation(withId: conversationId)
-    archivedConversationIds.insert(conversationId)
-    lastConversationStartDate = nil
-  } catch {
-    lastArchiveError = error.localizedDescription
-    print("⚠️ Failed to archive conversation audio: \(error)")
-    print("Error: \(error)")
+      guard !archivedConversationIds.contains(conversationId) else {
+        print("ℹ️ Conversation \(conversationId) already archived")
+        return
+      }
+
+      try await archiveConversation(withId: conversationId, agentId: summary.agentId)
+      archivedConversationIds.insert(conversationId)
+      lastConversationStartDate = nil
+    } catch {
+      lastArchiveError = error.localizedDescription
+      print("⚠️ Failed to archive conversation audio: \(error)")
+      print("Error: \(error)")
       print("Error description: \(String(describing: lastArchiveError))")
-  }
-}
-
-private func selectConversationId(
-  from summaries: [ElevenLabsAPI.ConversationSummary],
-  startedAt startDate: Date?
-) -> String? {
-  guard !summaries.isEmpty else { return nil }
-
-  let ordered = summaries.sorted { $0.sortDate > $1.sortDate }
-
-  guard let startDate else {
-    return ordered.first?.id
+    }
   }
 
-  let windowStart = startDate.addingTimeInterval(-300) // 5 minutes before start
-  let windowEnd = Date().addingTimeInterval(600) // up to 10 minutes after now
+  private func selectConversationSummary(
+    from summaries: [ElevenLabsAPI.ConversationSummary],
+    startedAt startDate: Date?
+  ) -> ElevenLabsAPI.ConversationSummary? {
+    guard !summaries.isEmpty else { return nil }
 
-  return ordered.first { summary in
-    guard let createdAt = summary.createdAt else { return true }
-    return createdAt >= windowStart && createdAt <= windowEnd
-  }?.id
-}
+    let ordered = summaries.sorted { $0.sortDate > $1.sortDate }
 
-  private func archiveConversation(withId conversationId: String) async throws {
+    guard let startDate else {
+      return ordered.first
+    }
+
+    let windowStart = startDate.addingTimeInterval(-300) // 5 minutes before start
+    let windowEnd = Date().addingTimeInterval(600) // up to 10 minutes after now
+
+    return ordered.first { summary in
+      guard let createdAt = summary.createdAt else { return true }
+      return createdAt >= windowStart && createdAt <= windowEnd
+    }
+  }
+
+  private func archiveConversation(withId conversationId: String, agentId: String?) async throws {
     let userId = try await SupabaseManager.shared.getCurrentUserId()
     var record = try await SupabaseManager.shared.fetchSessionRecord(conversationId: conversationId)
     var sessionId = record?.id ?? UUID()
@@ -433,7 +432,8 @@ private func selectConversationId(
       record = try await SupabaseManager.shared.insertSessionRecord(
         sessionId: sessionId,
         userId: userId,
-        conversationId: conversationId
+        conversationId: conversationId,
+        agentId: agentId
       )
       sessionId = record?.id ?? sessionId
     }
@@ -564,9 +564,9 @@ struct ErrorBanner: View {
       }
     }
     .padding()
-    .background(Color.red.opacity(0.9))
-    .cornerRadius(12)
-    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+    .background(Color.primeButtonDanger.opacity(0.95))
+    .cornerRadius(16)
+    .shadow(color: Color.primeButtonDanger.opacity(0.3), radius: 8, x: 0, y: 4)
     .padding(.horizontal)
     .padding(.top, 8)
   }
@@ -585,9 +585,9 @@ struct WarningBanner: View {
         .foregroundColor(.white)
     }
     .padding()
-    .background(Color.orange.opacity(0.9))
-    .cornerRadius(12)
-    .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+    .background(Color.primeAccent.opacity(0.95))
+    .cornerRadius(16)
+    .shadow(color: Color.primeAccent.opacity(0.3), radius: 8, x: 0, y: 4)
     .padding(.horizontal)
     .padding(.top, 8)
   }
@@ -604,184 +604,287 @@ struct PrimeChat: View {
   
   var body: some View {
     ZStack(alignment: .top) {
-      // Background
-      Color.white.ignoresSafeArea()
+      // Gradient Background
+      LinearGradient(
+        colors: [Color.primeGradientTop, Color.primeGradientBottom],
+        startPoint: .top,
+        endPoint: .bottom
+      )
+      .ignoresSafeArea()
       
-      // Decorative Background Elements
+      // Subtle decorative overlay
       GeometryReader { geometry in
         ZStack {
-          // Soft blue/purple gradients
+          // Soft gradient orbs for depth
           Circle()
-            .fill(Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.1))
+            .fill(
+              RadialGradient(
+                colors: [Color.primePrimary.opacity(0.08), Color.clear],
+                center: .center,
+                startRadius: 0,
+                endRadius: 150
+              )
+            )
             .frame(width: 300, height: 300)
-            .blur(radius: 60)
-            .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.3)
+            .blur(radius: 40)
+            .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.25)
           
           Circle()
-            .fill(Color.blue.opacity(0.1))
-            .frame(width: 250, height: 250)
-            .blur(radius: 50)
-            .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.6)
+            .fill(
+              RadialGradient(
+                colors: [Color.primeAccent.opacity(0.06), Color.clear],
+                center: .center,
+                startRadius: 0,
+                endRadius: 120
+              )
+            )
+            .frame(width: 240, height: 240)
+            .blur(radius: 35)
+            .position(x: geometry.size.width * 0.85, y: geometry.size.height * 0.65)
         }
       }
       .ignoresSafeArea()
       
       VStack(spacing: 0) {
-        // Top Bar
-        HStack {
-          // Profile / Session Indicator
-          HStack(spacing: 8) {
-            HStack(spacing: 4) {
+        // Top Bar with Talk/Chat Toggle
+        VStack(spacing: 16) {
+          // Profile Section
+          HStack {
+            // Session Indicator
+            HStack(spacing: 6) {
               Circle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 20, height: 20)
-                .overlay(
-                  Image(systemName: "person.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                )
+                .fill(Color.primePrimary.opacity(0.2))
+                .frame(width: 8, height: 8)
               
-              Text("1")
+              Text("Session 1")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(Color.primeSecondaryText)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color(red: 0.96, green: 0.97, blue: 0.98)) // #F4F8FB
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.primeSurface)
             .cornerRadius(20)
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
             
             Spacer()
             
-            // User Profile Picture
+            // User Profile
             Circle()
-              .stroke(Color.white.opacity(0.3), lineWidth: 1)
-              .background(
-                Circle().fill(Color.gray.opacity(0.2))
+              .fill(
+                LinearGradient(
+                  colors: [Color.primePrimaryLight, Color.primePrimary],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
               )
-              .frame(width: 40, height: 40)
+              .frame(width: 36, height: 36)
               .overlay(
                 Text(viewModel.userProfile?.firstName.prefix(1).uppercased() ?? "U")
                   .font(.system(size: 16, weight: .semibold))
-                  .foregroundColor(.gray)
+                  .foregroundColor(.white)
               )
+              .shadow(color: Color.primePrimary.opacity(0.3), radius: 4, x: 0, y: 2)
           }
-          .padding(.horizontal, 20)
-            .padding(.top, 16)
+          .padding(.horizontal, 24)
+          .padding(.top, 20)
+          
+          // Talk/Chat Toggle
+          HStack(spacing: 0) {
+            // Talk Button (Active State)
+            Button(action: {
+              // Talk mode is active
+            }) {
+              HStack(spacing: 6) {
+                Image(systemName: "mic.fill")
+                  .font(.system(size: 14))
+                Text("Talk")
+                  .font(.system(size: 15, weight: .semibold))
+              }
+              .foregroundColor(Color.primePrimaryText)
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 10)
+              .background(Color.white)
+              .cornerRadius(24)
+            }
+            
+            // Chat Button (Inactive State)
+            Button(action: {
+              // Future: Switch to chat mode
+            }) {
+              HStack(spacing: 6) {
+                Image(systemName: "message.fill")
+                  .font(.system(size: 14))
+                Text("Chat")
+                  .font(.system(size: 15, weight: .medium))
+              }
+              .foregroundColor(Color.primeTertiaryText)
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 10)
+            }
+          }
+          .padding(4)
+          .background(Color.primeToggleBg)
+          .cornerRadius(28)
+          .padding(.horizontal, 80)
+        }
+        
+        Spacer()
+        
+        // Center Content
+        VStack(spacing: 40) {
+          Spacer()
+          
+          if !viewModel.isConnected {
+            // Idle State Content
+            VStack(spacing: 32) {
+              // Decorative AI Avatar
+              ZStack {
+                // Outer glow
+                Circle()
+                  .fill(
+                    RadialGradient(
+                      colors: [Color.primePrimary.opacity(0.15), Color.clear],
+                      center: .center,
+                      startRadius: 40,
+                      endRadius: 80
+                    )
+                  )
+                  .frame(width: 160, height: 160)
+                
+                // Main avatar circle
+                Circle()
+                  .fill(Color.white)
+                  .frame(width: 120, height: 120)
+                  .shadow(color: Color.primePrimary.opacity(0.2), radius: 20, x: 0, y: 10)
+                  .overlay(
+                    Image(systemName: "sparkles")
+                      .font(.system(size: 36, weight: .light))
+                      .foregroundStyle(
+                        LinearGradient(
+                          colors: [Color.primePrimaryLight, Color.primePrimary],
+                          startPoint: .topLeading,
+                          endPoint: .bottomTrailing
+                        )
+                      )
+                  )
+              }
+              
+              // Welcome Text
+              VStack(spacing: 12) {
+                Text("Hi \(viewModel.userProfile?.firstName ?? "there"), Welcome to Prime")
+                  .font(.system(size: 26, weight: .semibold))
+                  .foregroundColor(Color.primePrimaryText)
+                  .multilineTextAlignment(.center)
+                
+                Text("I'm your personal AI coach ready to help you achieve your goals")
+                  .font(.system(size: 16, weight: .regular))
+                  .foregroundColor(Color.primeSecondaryText)
+                  .multilineTextAlignment(.center)
+                  .padding(.horizontal, 32)
+                  .lineSpacing(4)
+              }
+            }
+          } else {
+            // Connected State - Show animated orb
+            VStack(spacing: 24) {
+              AnimatedOrbView(
+                agentState: viewModel.conversation?.agentState ?? .listening,
+                size: 140
+              )
+              
+              Text(viewModel.isSpeaking ? "Speaking..." : "Listening...")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(Color.primePrimary)
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isSpeaking)
+            }
+          }
           
           Spacer()
         }
         
         Spacer()
         
-        // Center Content
-        VStack(spacing: 32) {
-          if !viewModel.isConnected {
-            // Central decorative element (MaskGroup in Figma) - Simplified
-             ZStack {
-               Circle()
-                 .fill(Color(red: 0.39, green: 0.27, blue: 0.92).opacity(0.05))
-                 .frame(width: 150, height: 150)
-               
-               Image(systemName: "sparkles")
-                 .font(.system(size: 40))
-                 .foregroundStyle(
-                    LinearGradient(
-                      colors: [Color(red: 0.39, green: 0.27, blue: 0.92), Color.blue],
-                      startPoint: .topLeading,
-                      endPoint: .bottomTrailing
-                    )
-                 )
-             }
-          
-          VStack(spacing: 8) {
-               Text("Hi \(viewModel.userProfile?.firstName ?? "there"), Welcome to Prime.")
-                 .font(.system(size: 24, weight: .regular))
-              .foregroundColor(Color(red: 0.13, green: 0.06, blue: 0.16))
-                 .multilineTextAlignment(.center)
-               
-               Text("I am your personal AI coach that helps you get things done.")
-                 .font(.system(size: 20, weight: .regular))
-                 .foregroundColor(Color.black.opacity(0.3)) // #211028 with 0.28 opacity
-                 .multilineTextAlignment(.center)
-                 .padding(.horizontal, 40)
-             }
-          } else {
-             // When connected, show status
-             VStack(spacing: 16) {
-                Text(viewModel.isSpeaking ? "Speaking..." : "Listening...")
-                 .font(.system(size: 24, weight: .medium))
-                 .foregroundColor(Color(red: 0.39, green: 0.27, blue: 0.92))
-          }
-          }
-        }
-        
-        Spacer()
-        
         // Bottom Control Bar
-        HStack(spacing: 16) {
-          // Delete / Reset Button
+        HStack(spacing: 20) {
+          // Secondary Action Button
           Button(action: {
             Task {
                await viewModel.endConversation()
             }
           }) {
-              Circle()
-               .fill(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.2)) // #8d8d8d roughly
-               .frame(width: 50, height: 50)
-               .overlay(
-                 Image(systemName: "trash")
-                   .font(.system(size: 20))
-                   .foregroundColor(.white)
-               )
+            Circle()
+              .fill(Color.primeControlBg)
+              .frame(width: 52, height: 52)
+              .overlay(
+                Image(systemName: "stop.fill")
+                  .font(.system(size: 18))
+                  .foregroundColor(Color.primeSecondaryText)
+              )
+              .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
           }
+          .disabled(!viewModel.isConnected)
+          .opacity(viewModel.isConnected ? 1 : 0.5)
           
-          // Center Pulse / Orb Button
+          // Primary Talk Button
           Button(action: {
-             Task {
-                await viewModel.toggleConversation(agentId: agentId)
+            Task {
+              await viewModel.toggleConversation(agentId: agentId)
             }
           }) {
-             ZStack {
-                if viewModel.isConnected {
-                   // Show animated orb when connected
-                   AnimatedOrbView(agentState: viewModel.conversation?.agentState ?? .listening, size: 80)
-                } else {
-                   // Idle state
-                   Circle()
-                     .fill(Color.white)
-                     .frame(width: 80, height: 80)
-                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                     .overlay(
-                        Image(systemName: "waveform")
-                           .font(.system(size: 30))
-                           .foregroundColor(Color(red: 0.39, green: 0.27, blue: 0.92))
-                     )
-                }
-             }
+            ZStack {
+              if viewModel.isConnected {
+                // Active state - animated orb
+                AnimatedOrbView(
+                  agentState: viewModel.conversation?.agentState ?? .listening,
+                  size: 72
+                )
+              } else {
+                // Idle state - primary button
+                Circle()
+                  .fill(
+                    LinearGradient(
+                      colors: [Color.primePrimaryLight, Color.primePrimary],
+                      startPoint: .topLeading,
+                      endPoint: .bottomTrailing
+                    )
+                  )
+                  .frame(width: 72, height: 72)
+                  .shadow(color: Color.primePrimary.opacity(0.4), radius: 12, x: 0, y: 6)
+                  .overlay(
+                    Image(systemName: "mic.fill")
+                      .font(.system(size: 28))
+                      .foregroundColor(.white)
+                  )
+              }
+            }
           }
-          .frame(width: 80, height: 80)
+          .frame(width: 72, height: 72)
           
-          // Transcribe Button
+          // Transcript Button
           Button(action: {
-             // Placeholder for transcribe action
-             print("Transcribe tapped")
+            // Future: Show transcripts
+            print("Transcripts tapped")
           }) {
-             Circle()
-               .fill(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.2))
-               .frame(width: 50, height: 50)
-               .overlay(
-                 Image(systemName: "text.bubble")
-                   .font(.system(size: 20))
-                   .foregroundColor(.white)
-               )
+            Circle()
+              .fill(Color.primeControlBg)
+              .frame(width: 52, height: 52)
+              .overlay(
+                Image(systemName: "doc.text.fill")
+                  .font(.system(size: 18))
+                  .foregroundColor(Color.primeSecondaryText)
+              )
+              .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
           }
         }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 16)
+        .background(
+          Capsule()
+            .fill(Color.white)
+            .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
+        )
+        .padding(.bottom, 40)
         .padding(.horizontal, 24)
-        .padding(.vertical, 12)
-        .background(Color(red: 0.55, green: 0.55, blue: 0.55).opacity(0.3)) // Gray bar background
-        .cornerRadius(40)
-        .padding(.bottom, 30)
-        .padding(.horizontal, 20)
       }
       
       // Banners

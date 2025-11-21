@@ -203,12 +203,14 @@ class SupabaseManager: ObservableObject {
     let userId: UUID
     let createdAt: Date?
     let elevenLabsConversationId: String?
+    let elevenLabsAgentId: String?
 
     enum CodingKeys: String, CodingKey {
       case id
       case userId = "user_id"
       case createdAt = "created_at"
       case elevenLabsConversationId = "elevenlabs_conversation_id"
+      case elevenLabsAgentId = "elevenlabs_agent_id"
     }
   }
 
@@ -244,13 +246,15 @@ class SupabaseManager: ObservableObject {
   func insertSessionRecord(
     sessionId: UUID,
     userId: UUID,
-    conversationId: String
+    conversationId: String,
+    agentId: String?
   ) async throws -> SessionRecord {
     let record = SessionRecord(
       id: sessionId,
       userId: userId,
       createdAt: nil,
-      elevenLabsConversationId: conversationId
+      elevenLabsConversationId: conversationId,
+      elevenLabsAgentId: agentId
     )
 
     do {
